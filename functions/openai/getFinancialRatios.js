@@ -5,7 +5,7 @@ const dynamoDb = new AWS.DynamoDB.DocumentClient();
 const { OpenAIApi, Configuration } = require('openai');
 
 const configuration = new Configuration({
-    apiKey: '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',
+    apiKey: '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',
   });
 const openai = new OpenAIApi(configuration);
 exports.handler = async function(event, context, callback) {
@@ -36,15 +36,17 @@ exports.handler = async function(event, context, callback) {
             items2.Items.forEach((item) => scanResultsIncomeStatement.push(item));
             params2.ExclusiveStartKey = items2.LastEvaluatedKey;
         }while(typeof items2.LastEvaluatedKey !== "undefined");
-
-        const prompt = "give me only financial ratios based on this balance sheet and income statement: 1. balance sheet" + items1 + "2. income statement" + items2;
-        console.log(prompt);
-        const response = await openai.createChatCompletion({
+        const balancesheetData = JSON.stringify(scanResultsBalanceSheet).replace('/','');
+        const incomData = JSON.stringify(scanResultsBalanceSheet).replace('/','');
+        const prompt = "as a financial analyst calculate" + JSON.stringify(body.ratio) +"for year"+ JSON.stringify(body.year) + " ratios based on this balance sheet and income statement: 1. balance sheet" + JSON.stringify(scanResultsBalanceSheet) + "2. income statement" + JSON.stringify(scanResultsIncomeStatement);
+        const promptData = {
             model: "gpt-3.5-turbo-16k",
             prompt: prompt,
             temperature: 1,
             max_tokens: 16384
-          });
+        };
+
+        const response = await openai.createChatCompletion(promptData);
         console.log(response.data.choices);
         const resp = {
           statusCode: 200,

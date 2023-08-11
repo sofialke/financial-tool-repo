@@ -24,7 +24,6 @@ export class FinancialAnalysisToolStack extends Stack {
         const incomeStatement = api.root.addResource('incomeStatement');
         const cashFlow = api.root.addResource('cashFlow');
         const openai = api.root.addResource('openai');
-        const financialRatios = api.root.addResource('financialRatios');
 
         const balanceSheetTable = new dynamodb.Table(this, 'balanceSheets', {
             tableName: 'BalanceSheet',
@@ -163,7 +162,7 @@ export class FinancialAnalysisToolStack extends Stack {
             apiKeyRequired: true
         });
 
-        const financialRatiosGetMethod = financialRatios.addMethod('GET', getFinancialRatiosIntegration, {
+        const financialRatiosPostMethod = openai.addMethod('POST', getFinancialRatiosIntegration, {
             apiKeyRequired: true
         });
 
@@ -181,7 +180,7 @@ export class FinancialAnalysisToolStack extends Stack {
 
         plan.addApiKey(apiKey);
 
-        const throttlingSettings = [balanceSheetPostMethod, incomeStatementPostMethod, cashFlowPostMethod, balanceSheetGetMethod, incomeStatementGetMethod, apiGetMethod, financialRatiosGetMethod].map(elem => {
+        const throttlingSettings = [balanceSheetPostMethod, incomeStatementPostMethod, cashFlowPostMethod, balanceSheetGetMethod, incomeStatementGetMethod, apiGetMethod, financialRatiosPostMethod].map(elem => {
             return {
                 method: elem,
                 throttle: {

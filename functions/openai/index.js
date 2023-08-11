@@ -5,7 +5,7 @@ const dynamoDb = new AWS.DynamoDB.DocumentClient();
 const { OpenAIApi, Configuration } = require('openai');
 
 const configuration = new Configuration({
-    apiKey: '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',
+    apiKey: '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',
   });
 const openai = new OpenAIApi(configuration);
 exports.handler = async function(event, context, callback) {
@@ -38,14 +38,17 @@ exports.handler = async function(event, context, callback) {
         }while(typeof items2.LastEvaluatedKey !== "undefined");
         const balancesheetData = JSON.stringify(scanResultsBalanceSheet).replace('/','');
         const incomData = JSON.stringify(scanResultsBalanceSheet).replace('/','');
-        const prompt = "generate financial analysis based on this balance sheet and income statement: 1. balance sheet" + JSON.stringify(scanResultsBalanceSheet) + "2. income statement" + JSON.stringify(scanResultsIncomeStatement);
+        const prompt = "as a financial analyst generate financial analysis based on this balance sheet and income statement: 1. balance sheet" + JSON.stringify(scanResultsBalanceSheet) + "2. income statement" + JSON.stringify(scanResultsIncomeStatement);
         console.log(prompt);
-        const response = await openai.createChatCompletion({
+        const promptData = {
             model: "gpt-3.5-turbo-16k",
             prompt: prompt,
             temperature: 1,
             max_tokens: 16384
-          });
+        };
+
+        const response = await openai.createChatCompletion(promptData);
+        console.log('OpenAI API response:', response.data);
         console.log(response.data.choices);
         const resp = {
           statusCode: 200,
