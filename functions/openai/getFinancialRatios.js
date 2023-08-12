@@ -5,9 +5,11 @@ const dynamoDb = new AWS.DynamoDB.DocumentClient();
 const { OpenAIApi, Configuration } = require('openai');
 
 const configuration = new Configuration({
-    apiKey: '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',
+    apiKey: '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',
   });
 const openai = new OpenAIApi(configuration);
+
+
 exports.handler = async function(event, context, callback) {
 
     const body = JSON.parse(event.body);
@@ -35,27 +37,35 @@ exports.handler = async function(event, context, callback) {
             items2 = await dynamoDb.scan(params2).promise();
             items2.Items.forEach((item) => scanResultsIncomeStatement.push(item));
             params2.ExclusiveStartKey = items2.LastEvaluatedKey;
+
         }while(typeof items2.LastEvaluatedKey !== "undefined");
-        const balancesheetData = JSON.stringify(scanResultsBalanceSheet).replace('/','');
-        const incomData = JSON.stringify(scanResultsBalanceSheet).replace('/','');
-        const prompt = "as a financial analyst calculate" + JSON.stringify(body.ratio) +"for year"+ JSON.stringify(body.year) + " ratios based on this balance sheet and income statement: 1. balance sheet" + JSON.stringify(scanResultsBalanceSheet) + "2. income statement" + JSON.stringify(scanResultsIncomeStatement);
+        const balancesheetData = JSON.stringify(scanResultsBalanceSheet);
+        const incomeData = JSON.stringify(scanResultsIncomeStatement);
+
+        const prompt = `As a financial analyst, calculate ${JSON.stringify(body.ratio)} for year ${JSON.stringify(body.year)} ratios based on this balance sheet and income statement: 1. balance sheet${balancesheetData}2. income statement${incomeData} make the answer shorter than 2048 tokens`
+        console.log(prompt);
         const promptData = {
-            model: "gpt-3.5-turbo-16k",
+            model: "text-davinci-003",
             prompt: prompt,
             temperature: 1,
-            max_tokens: 16384
+            max_tokens: 2048
         };
 
-        const response = await openai.createChatCompletion(promptData);
+        const response = await openai.createCompletion(JSON.stringify(promptData));
         console.log(response.data.choices);
         const resp = {
           statusCode: 200,
-          body: JSON.stringify(response.data.choices)
+          body: JSON.stringify(response.data.choices),
+            headers: {
+                'Access-Control-Allow-Origin': '*',
+                'Access-Control-Allow-Headers': '*',
+            }
         };
         return resp;
     }catch(err)
     {
         console.log(err);
+        console.log(err.data.error);c
         const resp = {
           statusCode: 500,
           headers: {
@@ -67,32 +77,6 @@ exports.handler = async function(event, context, callback) {
         console.log(resp);
         return resp;
     };
-    // body.forEach(async element => {
-    //     var params = {
-    //         TableName: process.env.DYNAMODB_TABLE,
-    //         Item: element
-    //     };
-    //     console.log(params);
-        
-    //     try
-    //     {
-    //         var result = await dynamoDb.put(params).promise();
-    //         console.log(result);
-
-    //         console.log(resp);
-            
-    //         return resp;
-    //     }catch(err)
-    //     {
-    //         console.log(err);
-    //         const resp = {
-    //           statusCode: 500,
-    //           body: JSON.stringify({"error": "Error while saving balance sheet data to the database"})
-    //         };
-    //         console.log(resp);
-    //         return resp;
-    //     };
-    // });
     
     const resp = {
         statusCode: 200,
