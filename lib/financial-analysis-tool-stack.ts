@@ -24,6 +24,7 @@ export class FinancialAnalysisToolStack extends Stack {
         const incomeStatement = api.root.addResource('incomeStatement');
         const cashFlow = api.root.addResource('cashFlow');
         const openai = api.root.addResource('openai');
+        const openaiRedFlags = api.root.addResource('openaiRedFlags');
 
         const balanceSheetTable = new dynamodb.Table(this, 'balanceSheets', {
             tableName: 'BalanceSheet',
@@ -115,6 +116,21 @@ export class FinancialAnalysisToolStack extends Stack {
             memorySize: 3008,
         });
 
+        const getRedFlags = new lambda.Function(this, 'getRedFlags', {
+            runtime: lambda.Runtime.NODEJS_16_X,
+            handler: 'index.handler',
+            code: lambda.Code.fromAsset(path.join(__dirname, '../functions/redFlags')),
+            timeout: Duration.seconds(120),
+            memorySize: 3008,
+        });
+
+        const postIndustryAnalysis = new NodejsFunction(this, 'postIndustryAnalysis', {
+            handler: 'handler',
+            entry: path.join(__dirname, '../functions/redFlags/postIndustryAnalysis.js'),
+            timeout: Duration.seconds(120),
+            memorySize: 3008,
+        });
+
         balanceSheetTable.grantReadWriteData(saveBalanceSheetData);
         incomeStatementTable.grantReadWriteData(saveIncomeStatementData);
         cashFlowTable.grantReadWriteData(saveCashFlowData);
@@ -129,6 +145,12 @@ export class FinancialAnalysisToolStack extends Stack {
         balanceSheetTable.grantReadWriteData(getFinancialRatios);
         incomeStatementTable.grantReadWriteData(getFinancialRatios);
 
+        balanceSheetTable.grantReadWriteData(getRedFlags);
+        incomeStatementTable.grantReadWriteData(getRedFlags);
+
+        balanceSheetTable.grantReadWriteData(postIndustryAnalysis);
+        incomeStatementTable.grantReadWriteData(postIndustryAnalysis);
+
         const saveBalanceSheetDataIntegration = new apigateway.LambdaIntegration(saveBalanceSheetData);
         const saveIncomeStatementIntegration = new apigateway.LambdaIntegration(saveIncomeStatementData);
         const saveCashFlowIntegration = new apigateway.LambdaIntegration(saveCashFlowData);
@@ -136,6 +158,8 @@ export class FinancialAnalysisToolStack extends Stack {
         const getAllIncomeStatementRecordsIntegration = new apigateway.LambdaIntegration(getAllIncomeStatementRecords);
         const getApiAnalysisIntegration = new apigateway.LambdaIntegration(getApiAnalysis);
         const getFinancialRatiosIntegration = new apigateway.LambdaIntegration(getFinancialRatios);
+        const getRedFlagsIntegration = new apigateway.LambdaIntegration(getRedFlags);
+        const postIndustryAnalysisIntegration = new apigateway.LambdaIntegration(postIndustryAnalysis);
 
         const balanceSheetPostMethod = balanceSheet.addMethod('POST', saveBalanceSheetDataIntegration, {
             apiKeyRequired: true,
@@ -166,6 +190,14 @@ export class FinancialAnalysisToolStack extends Stack {
             apiKeyRequired: true
         });
 
+        const redFlagsGetMethod = openaiRedFlags.addMethod('GET', getRedFlagsIntegration, {
+            apiKeyRequired: true
+        });
+
+        const industryAnalysisPostMethod = openaiRedFlags.addMethod('POST', postIndustryAnalysisIntegration, {
+            apiKeyRequired: true
+        });
+
         const plan = api.addUsagePlan('UsagePlan', {
             name: 'standardUsagePlan',
             quota: {
@@ -180,7 +212,9 @@ export class FinancialAnalysisToolStack extends Stack {
 
         plan.addApiKey(apiKey);
 
-        const throttlingSettings = [balanceSheetPostMethod, incomeStatementPostMethod, cashFlowPostMethod, balanceSheetGetMethod, incomeStatementGetMethod, apiGetMethod, financialRatiosPostMethod].map(elem => {
+        const throttlingSettings = [balanceSheetPostMethod,
+            incomeStatementPostMethod, cashFlowPostMethod, balanceSheetGetMethod, incomeStatementGetMethod,
+            apiGetMethod, financialRatiosPostMethod, redFlagsGetMethod, industryAnalysisPostMethod].map(elem => {
             return {
                 method: elem,
                 throttle: {

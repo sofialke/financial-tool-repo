@@ -8,6 +8,8 @@ const configuration = new Configuration({
     apiKey: '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',
   });
 const openai = new OpenAIApi(configuration);
+
+
 exports.handler = async function(event, context, callback) {
 
     const body = JSON.parse(event.body);
@@ -35,11 +37,12 @@ exports.handler = async function(event, context, callback) {
             items2 = await dynamoDb.scan(params2).promise();
             items2.Items.forEach((item) => scanResultsIncomeStatement.push(item));
             params2.ExclusiveStartKey = items2.LastEvaluatedKey;
+
         }while(typeof items2.LastEvaluatedKey !== "undefined");
         const balancesheetData = JSON.stringify(scanResultsBalanceSheet);
         const incomeData = JSON.stringify(scanResultsIncomeStatement);
 
-        const prompt = `As a financial analyst, perform a financial analysis based on this balance sheet and income statement: 1. balance sheet${balancesheetData}2. income statement${incomeData} make the answer shorter than 2048 tokens`
+        const prompt = `As a financial analyst, compare financial ratios of a company with the follwing balance sheet and income statement: 1. balance sheet${balancesheetData}2. income statement${incomeData} to the ${JSON.stringify(body.industry)} industry average ratios. make the answer shorter than 2048 tokens`
         console.log(prompt);
         const promptData = {
             model: "text-davinci-003",
@@ -49,7 +52,6 @@ exports.handler = async function(event, context, callback) {
         };
 
         const response = await openai.createCompletion(JSON.stringify(promptData));
-        console.log('OpenAI API response:', response.data);
         console.log(response.data.choices);
         const resp = {
           statusCode: 200,
@@ -63,16 +65,21 @@ exports.handler = async function(event, context, callback) {
     }catch(err)
     {
         console.log(err);
-        console.log(err.data.error);
+        console.log(err.data.error);c
         const resp = {
           statusCode: 500,
           headers: {
               'Access-Control-Allow-Origin': '*',
               'Access-Control-Allow-Headers': '*',
           },
-          body: JSON.stringify({"error": "Error while calling openai api"})
+          body: JSON.stringify({"error": "Error while calling open ai api to get financial ratios"})
         };
         console.log(resp);
         return resp;
     };
+    
+    const resp = {
+        statusCode: 200,
+        body: JSON.stringify({})
+      };
 }

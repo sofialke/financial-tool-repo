@@ -5,7 +5,7 @@ const dynamoDb = new AWS.DynamoDB.DocumentClient();
 const { OpenAIApi, Configuration } = require('openai');
 
 const configuration = new Configuration({
-    apiKey: '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',
+    apiKey: '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',
   });
 const openai = new OpenAIApi(configuration);
 
@@ -42,7 +42,7 @@ exports.handler = async function(event, context, callback) {
         const balancesheetData = JSON.stringify(scanResultsBalanceSheet);
         const incomeData = JSON.stringify(scanResultsIncomeStatement);
 
-        const prompt = `As a financial analyst, calculate ${JSON.stringify(body.ratio)} for year ${JSON.stringify(body.year)} ratios based on this balance sheet and income statement: 1. balance sheet${balancesheetData}2. income statement${incomeData} make the answer shorter than 2048 tokens`
+        const prompt = `provide me with only a number, without any comment, for ${JSON.stringify(body.ratio)} the ${JSON.stringify(body.year)} year, based on those financial statements 1. balance sheet${balancesheetData}2. income statement${incomeData} make the answer shorter than 2048 tokens`
         console.log(prompt);
         const promptData = {
             model: "text-davinci-003",
