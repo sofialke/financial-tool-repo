@@ -5,7 +5,7 @@ const dynamoDb = new AWS.DynamoDB.DocumentClient();
 const { OpenAIApi, Configuration } = require('openai');
 
 const configuration = new Configuration({
-    apiKey: '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',
+    apiKey: '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',
   });
 const openai = new OpenAIApi(configuration);
 exports.handler = async function(event, context, callback) {
