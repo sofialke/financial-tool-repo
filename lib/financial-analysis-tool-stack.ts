@@ -170,7 +170,7 @@ export class FinancialAnalysisToolStack extends Stack {
             apiKeyRequired: true
         });
 
-        const cashFlowPostMethod = cashFlow.addMethod('POST', saveCashFlowIntegration, {
+        const cashFlowPostMethod = cashFlow.addMethod('GET', saveCashFlowIntegration, {
             apiKeyRequired: true
         });
 
