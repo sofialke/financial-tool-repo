@@ -42,7 +42,7 @@ exports.handler = async function(event, context, callback) {
         const balancesheetData = JSON.stringify(scanResultsBalanceSheet);
         const incomeData = JSON.stringify(scanResultsIncomeStatement);
 
-        const prompt = `As a financial analyst, compare financial ratios of a company with the follwing balance sheet and income statement: 1. balance sheet${balancesheetData}2. income statement${incomeData} to the ${JSON.stringify(body.industry)} industry average ratios. make the answer shorter than 2048 tokens`
+        const prompt = `As a financial analyst, compare financial ratios of a company with the follwing balance sheet and income statement: 1. balance sheet${balancesheetData}2. income statement${incomeData} to the ${JSON.stringify(body.industry)} industry average ratios.`
         console.log(prompt);
         const promptData = {
             model: "text-davinci-003",
@@ -54,11 +54,12 @@ exports.handler = async function(event, context, callback) {
         const response = await openai.createCompletion(JSON.stringify(promptData));
         console.log(response.data.choices);
         const resp = {
-          statusCode: 200,
-          body: JSON.stringify(response.data.choices),
+            statusCode: 200,
+            body: JSON.stringify(response.data.choices),
             headers: {
                 'Access-Control-Allow-Origin': '*',
                 'Access-Control-Allow-Headers': '*',
+                'Access-Control-Allow-Methods': '*'
             }
         };
         return resp;
@@ -71,6 +72,7 @@ exports.handler = async function(event, context, callback) {
           headers: {
               'Access-Control-Allow-Origin': '*',
               'Access-Control-Allow-Headers': '*',
+              'Access-Control-Allow-Methods': '*'
           },
           body: JSON.stringify({"error": "Error while calling open ai api to get financial ratios"})
         };

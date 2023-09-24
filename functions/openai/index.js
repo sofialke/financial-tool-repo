@@ -39,7 +39,7 @@ exports.handler = async function(event, context, callback) {
         const balancesheetData = JSON.stringify(scanResultsBalanceSheet);
         const incomeData = JSON.stringify(scanResultsIncomeStatement);
 
-        const prompt = `As a financial analyst, perform a financial analysis based on this balance sheet and income statement: 1. balance sheet${balancesheetData}2. income statement${incomeData} make the answer shorter than 2048 tokens`
+        const prompt = `As a financial analyst, perform a balance sheet analysis ${balancesheetData} `
         console.log(prompt);
         const promptData = {
             model: "text-davinci-003",
@@ -51,9 +51,25 @@ exports.handler = async function(event, context, callback) {
         const response = await openai.createCompletion(JSON.stringify(promptData));
         console.log('OpenAI API response:', response.data);
         console.log(response.data.choices);
+
+        const prompt2 = `As a financial analyst, perform a income statement analysis ${incomeData} `;
+        console.log(prompt);
+        const promptData2 = {
+            model: "text-davinci-003",
+            prompt: prompt2,
+            temperature: 1,
+            max_tokens: 2048
+        };
+
+        const response2 = await openai.createCompletion(JSON.stringify(promptData2));
+        console.log('OpenAI API response:', response2.data);
+        console.log(response2.data.choices);
+
+        const finalResponse = response.data.choices[0].text + response2.data.choices[0].text;
+        console.log(finalResponse);
         const resp = {
           statusCode: 200,
-          body: JSON.stringify(response.data.choices),
+          body: JSON.stringify(finalResponse),
             headers: {
                 'Access-Control-Allow-Origin': '*',
                 'Access-Control-Allow-Headers': '*',

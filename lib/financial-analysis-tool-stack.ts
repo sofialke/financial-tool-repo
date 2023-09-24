@@ -104,7 +104,7 @@ export class FinancialAnalysisToolStack extends Stack {
             runtime: lambda.Runtime.NODEJS_16_X,
             handler: 'index.handler',
             code: lambda.Code.fromAsset(path.join(__dirname, '../functions/openai')),
-            timeout: Duration.seconds(120),
+            timeout: Duration.seconds(600),
             memorySize: 3008,
         });
 
@@ -150,6 +150,10 @@ export class FinancialAnalysisToolStack extends Stack {
 
         balanceSheetTable.grantReadWriteData(postIndustryAnalysis);
         incomeStatementTable.grantReadWriteData(postIndustryAnalysis);
+
+
+        balanceSheetTable.grantReadWriteData(saveCashFlowData);
+        incomeStatementTable.grantReadWriteData(saveCashFlowData);
 
         const saveBalanceSheetDataIntegration = new apigateway.LambdaIntegration(saveBalanceSheetData);
         const saveIncomeStatementIntegration = new apigateway.LambdaIntegration(saveIncomeStatementData);

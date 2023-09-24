@@ -39,7 +39,7 @@ exports.handler = async function(event, context, callback) {
         const balancesheetData = JSON.stringify(scanResultsBalanceSheet);
         const incomeData = JSON.stringify(scanResultsIncomeStatement);
 
-        const prompt = `As a financial analyst, perform a cash flow analysis based on those two financial statements: 1. balance sheet${balancesheetData}2. income statement${incomeData} make the answer shorter than 2048 tokens`
+        const prompt = `as a financial analyst create a simplified statement of cash flows using the balance sheet and income statement below: 1. balance sheet${balancesheetData}2. income statement${incomeData} make the answer shorter than 2048 tokens`
         console.log(prompt);
         const promptData = {
             model: "text-davinci-003",
